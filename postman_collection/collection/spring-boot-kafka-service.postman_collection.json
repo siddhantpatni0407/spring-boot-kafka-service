@@ -1,0 +1,632 @@
+{
+	"info": {
+		"_postman_id": "93bdba6d-4fb2-4815-93aa-b6276e6d0692",
+		"name": "spring-boot-kafka-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6002209"
+	},
+	"item": [
+		{
+			"name": "Kafka Utility",
+			"item": [
+				{
+					"name": "Start Kafka Servers",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/start-server",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"start-server"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stop Kafka Servers",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/stop-server",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"stop-server"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Topic",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName=siddhant",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"topic"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "siddhant"
+								},
+								{
+									"key": "partition",
+									"value": "5",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Topics",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"topic"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Topic Details",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=kafka-error-handling",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"topic",
+								"details"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "kafka-error-handling"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Topic",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName=kafka-demo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"topic"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "kafka-demo"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Kafka Logs",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/logs",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"logs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Kafka Publisher",
+			"item": [
+				{
+					"name": "Send Message to Topic",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8082/api/v1/kafka-service/publish?message=Siddhant Patni",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"publish"
+							],
+							"query": [
+								{
+									"key": "message",
+									"value": "Siddhant Patni"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Events to Topic",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Siddhant Patni\",\r\n    \"email\": \"siddhant4patni@gmail.com\",\r\n    \"contactNo\": \"7588811796\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/api/v1/kafka-service/publish",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"publish"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Kafka Publisher Error Handling",
+			"item": [
+				{
+					"name": "Publish Events",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8084/api/v1/kafka-service/error-handling/producer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"error-handling",
+								"producer"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

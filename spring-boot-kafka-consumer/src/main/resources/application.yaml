@@ -1,0 +1,48 @@
+spring:
+    application:
+        name: spring-boot-kafka-consumer
+    main:
+        banner-mode: #off
+    banner:
+        location: classpath:banner.txt
+    security:
+        user:
+            name: admin
+            password: admin
+            roles: ACTUATOR_ADMIN
+    kafka:
+        consumer:
+            bootstrap-servers: localhost:9092
+            max-poll-records: 2
+            concurrency: 3
+            group-id: my-group-id
+            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            auto-offset-reset: earliest
+            topic: kafka-demo
+            properties:
+              max:
+                  poll:
+                      interval:
+                          ms: 600000
+            enable-auto-commit: false
+        listener:
+          ack-mode: MANUAL
+    json:
+        trusted:
+            packages: "com.sid.app.model"
+
+server:
+    port: 8083
+
+audit:
+    connector:
+        url: http://localhost:8085/audit
+        username: audit
+        password: audit
+
+logging:
+    level:
+        root: INFO
+        com:
+            sid: INFO
