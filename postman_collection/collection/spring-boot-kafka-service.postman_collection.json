@@ -163,7 +163,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName=siddhant",
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/create-topic?topicName=kafka-demo",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -174,12 +174,12 @@
 								"v1",
 								"kafka-service",
 								"kafka",
-								"topic"
+								"create-topic"
 							],
 							"query": [
 								{
 									"key": "topicName",
-									"value": "siddhant"
+									"value": "kafka-demo"
 								},
 								{
 									"key": "partition",
@@ -288,7 +288,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=kafka-error-handling",
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=kafka-demo",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -305,7 +305,7 @@
 							"query": [
 								{
 									"key": "topicName",
-									"value": "kafka-error-handling"
+									"value": "kafka-demo"
 								}
 							]
 						}
