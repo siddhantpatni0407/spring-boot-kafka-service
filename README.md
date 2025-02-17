@@ -1,4 +1,4 @@
-# spring-boot-kafka-service
+# 📌 spring-boot-kafka-service
 
 # Table of Contents
 
@@ -42,7 +42,8 @@
     - [API Summary](#api-summary)
         - [Overview](#overview)
         - [API Endpoints](#api-endpoints)
-9. [Postman Collection](#Postman-Collection)
+9. [Front End App Details](#Front-End-App-Details)
+10. [Postman Collection](#Postman-Collection)
 
 ## Introduction
 
@@ -411,7 +412,7 @@ the [official website](https://kafka.apache.org/downloads).
 
 ### 3. Create Topic
 
-- **URL** - http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName={topic-name}&partition={partition}
+- **URL** - http://localhost:8081/api/v1/kafka-service/kafka/create-topic?topicName={topic-name}&partition={partition}
 - **HTTP Method** - POST
 - **Description:** Creates a new Kafka topic with the specified name and partition.
 - **Request Parameters:**
@@ -659,8 +660,15 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Message published successfully.
 
+### Front End App Details
+
+- App Name - react-kafka-manager-ui
+- Platform - ReactJS
+- repo URL - https://github.com/siddhantpatni0407/react-kafka-manager-ui.git
+- URL - http://localhost:3000
+
 ## Postman Collection
 
 ```
-https://github.com/siddhantpatni0407/spring-boot-microservices/blob/master/spring-boot-kafka-service/postman_collection/collection/spring-boot-kafka-service.postman_collection.json
+https://github.com/siddhantpatni0407/spring-boot-kafka-service/tree/master/postman_collection/collection/spring-boot-kafka-service.postman_collection.json
 ```
