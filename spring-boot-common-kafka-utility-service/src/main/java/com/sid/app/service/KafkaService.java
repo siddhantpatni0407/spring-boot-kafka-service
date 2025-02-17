@@ -5,7 +5,6 @@ import com.sid.app.model.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -201,25 +201,36 @@ public class KafkaService {
         Properties properties = new Properties();
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, appProperties.getBootstrapServers());
 
-        try (AdminClient adminClient = AdminClient.create(properties)) {
+        // Create the AdminClient and don't close it until we're done with it
+        AdminClient adminClient = AdminClient.create(properties);
+        try {
             DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(
                     Collections.singletonList(topicName), new DescribeTopicsOptions().timeoutMs(5000));
             KafkaFuture<TopicDescription> topicDescriptionFuture = describeTopicsResult.values().get(topicName);
-            return Mono.create(sink -> {
-                try {
-                    TopicDescription topicDescription = topicDescriptionFuture.get();
-                    sink.success(topicDescription);
-                } catch (InterruptedException | ExecutionException e) {
-                    if (e.getCause() instanceof UnknownTopicOrPartitionException) {
-                        sink.error(new UnknownTopicOrPartitionException("Topic '" + topicName + "' does not exist"));
-                    } else {
-                        sink.error(e);
-                    }
+
+            // Wrap KafkaFuture in a CompletableFuture
+            CompletableFuture<TopicDescription> completableFuture = new CompletableFuture<>();
+
+            topicDescriptionFuture.whenComplete((result, exception) -> {
+                if (exception != null) {
+                    completableFuture.completeExceptionally(exception);
+                } else {
+                    completableFuture.complete(result);
                 }
             });
+
+            // Use Mono.fromFuture to wrap the CompletableFuture
+            return Mono.fromFuture(() -> completableFuture)
+                    .doFinally(signal -> {
+                        // Ensure we close the AdminClient when done
+                        adminClient.close();
+                    });
         } catch (Exception e) {
+            // Ensure we close the AdminClient on error too
+            adminClient.close();
             return Mono.error(e);
         }
     }
+
 
 }

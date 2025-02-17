@@ -31,7 +31,7 @@ public class KafkaController {
     @Autowired
     private KafkaService kafkaService;
 
-    @PostMapping(value = AppConstants.KAFKA_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = AppConstants.KAFKA_CREATE_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> createTopic(@RequestParam(value = "topicName") String topicName,
                                                       @RequestParam(value = "partition", required = false) Integer partition) {
         if (log.isInfoEnabled()) {
@@ -79,16 +79,17 @@ public class KafkaController {
                     return ResponseEntity.ok(topicDetails);
                 })
                 .onErrorResume(KafkaException.class, error -> {
-                    // Handle Kafka exception
+                    log.error("KafkaException occurred while fetching topic details", error);
                     return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
                             .body(new TopicDetails()));
                 })
                 .onErrorResume(Exception.class, error -> {
-                    // Handle other exceptions
+                    log.error("Exception occurred while fetching topic details", error);
                     return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                             .body(new TopicDetails()));
                 });
     }
+
 
     @DeleteMapping(value = AppConstants.KAFKA_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> deleteTopic(@RequestParam(value = "topicName") String topicName) {
