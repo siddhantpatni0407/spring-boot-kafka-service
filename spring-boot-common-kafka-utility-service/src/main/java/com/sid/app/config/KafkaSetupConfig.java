@@ -1,6 +1,5 @@
-package com.sid.app.service;
+package com.sid.app.config;
 
-import com.sid.app.config.AppProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
