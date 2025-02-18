@@ -16,7 +16,8 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Service to dynamically set up Kafka upon application startup based on system properties.
+ * Configuration class responsible for setting up Kafka dynamically upon application startup.
+ * Downloads, extracts, and configures Kafka based on system properties.
  */
 @Configuration
 @Slf4j
@@ -34,6 +35,11 @@ public class KafkaSetupConfig {
         this.appProperties = appProperties;
     }
 
+    /**
+     * Application runner that sets up Kafka if required.
+     *
+     * @return ApplicationRunner instance
+     */
     @Bean
     public ApplicationRunner kafkaSetupRunner() {
         return args -> {
@@ -50,96 +56,84 @@ public class KafkaSetupConfig {
                     : System.getProperty("user.home") + File.separator + "Downloads";
 
             Path kafkaSetupPath = Paths.get(setupBasePath, KAFKA_FOLDER_NAME);
-            File kafkaSetupFolder = kafkaSetupPath.toFile();
             Path kafkaArchivePath = kafkaSetupPath.resolve(KAFKA_ARCHIVE_NAME);
             Path finalKafkaFolder = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
 
             log.info("Kafka setup directory: {}", kafkaSetupPath);
 
             // Step 1: Create setup folder if it does not exist
-            if (!Files.exists(kafkaSetupPath)) {
-                log.info("Kafka setup folder not found. Creating directory...");
-                Files.createDirectories(kafkaSetupPath);
-            } else {
-                log.info("Kafka setup folder already exists. Skipping directory creation.");
-            }
+            Files.createDirectories(kafkaSetupPath);
 
-            // Step 2: Check if Kafka archive exists, if not, download it
+            // Step 2: Download Kafka if archive does not exist
             if (!Files.exists(kafkaArchivePath)) {
-                log.info("Kafka archive not found. Preparing to download...");
+                log.info("Kafka archive not found. Downloading...");
                 downloadKafka(kafkaArchivePath.toString());
-            } else {
-                log.info("Kafka archive already exists at {}. Skipping download.", kafkaArchivePath);
             }
 
             // Step 3: Extract Kafka archive if not already extracted
             if (!Files.exists(finalKafkaFolder)) {
                 log.info("Extracting Kafka archive...");
                 extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
-
-                // Ensure all streams are closed before renaming
                 TimeUnit.SECONDS.sleep(2);
                 renameKafkaFolder(kafkaSetupPath);
-
-                // Step 4: Delete the `kafka.tar` file after extraction
                 deleteKafkaTarFile(kafkaSetupPath);
-            } else {
-                log.info("Kafka is already extracted and renamed. Skipping extraction.");
             }
 
             log.info("=== Kafka Setup Completed ===");
         };
     }
 
+    /**
+     * Downloads Kafka from the specified URL.
+     *
+     * @param filePath Path to save the downloaded file.
+     */
     private void downloadKafka(String filePath) {
         try {
             log.info("Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
-            long fileSize = getFileSize(KAFKA_DOWNLOAD_URL);
-            log.info("File size before download: {} MB", fileSize / (1024 * 1024));
-
-            long startTime = System.currentTimeMillis();
             FileUtils.copyURLToFile(new URL(KAFKA_DOWNLOAD_URL), new File(filePath));
-            long endTime = System.currentTimeMillis();
-
             log.info("Kafka downloaded successfully at {}", filePath);
-            log.info("Download completed in {} seconds.", (endTime - startTime) / 1000.0);
         } catch (IOException e) {
             log.error("Failed to download Kafka: {}", e.getMessage(), e);
         }
     }
 
+    /**
+     * Extracts the Kafka archive.
+     *
+     * @param archivePath    Path of the compressed archive.
+     * @param destinationDir Destination directory for extraction.
+     */
     private void extractKafkaArchive(String archivePath, String destinationDir) {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(archivePath));
              FileOutputStream fileOutputStream = new FileOutputStream(destinationDir + File.separator + "kafka.tar")) {
 
-            log.info("Extracting Kafka archive...");
             byte[] buffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = gzipInputStream.read(buffer)) > 0) {
                 fileOutputStream.write(buffer, 0, bytesRead);
             }
-
             extractTarFile(destinationDir + File.separator + "kafka.tar", destinationDir);
-
-            log.info("Kafka extraction completed.");
         } catch (IOException e) {
             log.error("Failed to extract Kafka archive: {}", e.getMessage(), e);
         }
     }
 
+    /**
+     * Extracts a TAR file.
+     *
+     * @param tarFilePath    Path to the TAR file.
+     * @param destinationDir Directory to extract the contents.
+     */
     private void extractTarFile(String tarFilePath, String destinationDir) {
-        try (FileInputStream fis = new FileInputStream(tarFilePath);
-             BufferedInputStream bis = new BufferedInputStream(fis);
-             TarArchiveInputStream tis = new TarArchiveInputStream(bis)) {
-
+        try (TarArchiveInputStream tis = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream(tarFilePath)))) {
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 File outputFile = new File(destinationDir, entry.getName());
                 if (entry.isDirectory()) {
                     Files.createDirectories(outputFile.toPath());
                 } else {
-                    try (FileOutputStream fos = new FileOutputStream(outputFile);
-                         BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                    try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile))) {
                         byte[] buffer = new byte[1024];
                         int bytesRead;
                         while ((bytesRead = tis.read(buffer)) != -1) {
@@ -153,6 +147,11 @@ public class KafkaSetupConfig {
         }
     }
 
+    /**
+     * Renames the extracted Kafka folder.
+     *
+     * @param kafkaSetupPath Base setup path containing extracted files.
+     */
     private void renameKafkaFolder(Path kafkaSetupPath) {
         try (Stream<Path> paths = Files.list(kafkaSetupPath)) {
             paths.filter(Files::isDirectory)
@@ -160,28 +159,11 @@ public class KafkaSetupConfig {
                     .findFirst()
                     .ifPresent(extractedFolder -> {
                         Path renamedPath = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
-                        int attempts = 0;
-                        boolean renamed = false;
-
-                        while (attempts < 3 && !renamed) {
-                            try {
-                                log.info("Attempting to rename '{}' to '{}'", extractedFolder, renamedPath);
-                                Files.move(extractedFolder, renamedPath, StandardCopyOption.REPLACE_EXISTING);
-                                log.info("Successfully renamed '{}' to '{}'", extractedFolder, renamedPath);
-                                renamed = true;
-                            } catch (IOException e) {
-                                attempts++;
-                                log.warn("Rename attempt {} failed: {}. Retrying in 2 seconds...", attempts, e.getMessage());
-                                try {
-                                    Thread.sleep(3000);
-                                } catch (InterruptedException ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                            }
-                        }
-
-                        if (!renamed) {
-                            log.error("Failed to rename Kafka folder after multiple attempts.");
+                        try {
+                            Files.move(extractedFolder, renamedPath, StandardCopyOption.REPLACE_EXISTING);
+                            log.info("Successfully renamed Kafka folder to {}", renamedPath);
+                        } catch (IOException e) {
+                            log.error("Failed to rename Kafka folder: {}", e.getMessage(), e);
                         }
                     });
         } catch (IOException e) {
@@ -189,21 +171,19 @@ public class KafkaSetupConfig {
         }
     }
 
+    /**
+     * Deletes the temporary Kafka TAR file after extraction.
+     *
+     * @param kafkaSetupPath Path containing the TAR file.
+     */
     private void deleteKafkaTarFile(Path kafkaSetupPath) {
         Path kafkaTarPath = kafkaSetupPath.resolve("kafka.tar");
         try {
-            if (Files.exists(kafkaTarPath)) {
-                Files.delete(kafkaTarPath);
-                log.info("Deleted temporary kafka.tar file.");
-            }
+            Files.deleteIfExists(kafkaTarPath);
+            log.info("Deleted temporary kafka.tar file.");
         } catch (IOException e) {
             log.error("Failed to delete kafka.tar: {}", e.getMessage(), e);
         }
-    }
-
-    private long getFileSize(String fileUrl) throws IOException {
-        URL url = new URL(fileUrl);
-        return url.openConnection().getContentLengthLong();
     }
 
 }
