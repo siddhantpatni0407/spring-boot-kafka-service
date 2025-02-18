@@ -5,8 +5,9 @@
 1. [Introduction](#introduction)
 2. [Description](#description)
 3. [Features](#features)
-4. [Usage](#usage)
-5. [Key Concepts](#key-concepts)
+4. [Kafka Auto Setup](#kafka-auto-setup)
+5. [Usage](#usage)
+6. [Key Concepts](#key-concepts)
     - [Kafka Cluster](#kafka-cluster)
     - [Kafka Broker](#kafka-broker)
     - [Kafka Producer](#kafka-producer)
@@ -16,8 +17,8 @@
     - [Offsets](#offsets)
     - [Consumer Groups](#consumer-groups)
     - [Serialization](#serialization)
-6. [Demo Application](#demo-application)
-7. [Diagrams](#diagrams)
+7. [Demo Application](#demo-application)
+8. [Diagrams](#diagrams)
     - [Kafka - Sequence Diagram](#kafka---sequence-diagram)
     - [Kafka - Sequence Diagram - Error Handling Implementation](#kafka---sequence-diagram---error-handling-implementation)
     - [Kafka - Flow Diagram - 1](#kafka---flow-diagram---1)
@@ -25,7 +26,7 @@
     - [Kafka - Flow Diagram - 3](#kafka---flow-diagram---3)
     - [Kafka - Flow Diagram - 4](#kafka---flow-diagram---4)
     - [Kafka - Block Diagram](#kafka---block-diagram)
-8. [Apache Kafka Commands](#apache-kafka-commands)
+9. [Apache Kafka Commands](#apache-kafka-commands)
     - [Prerequisites](#prerequisites)
     - [Steps - For Open Source Kafka Server](#steps---for-open-source-kafka-server)
     - [API Details](#api-details)
@@ -42,8 +43,8 @@
     - [API Summary](#api-summary)
         - [Overview](#overview)
         - [API Endpoints](#api-endpoints)
-9. [Front End App Details](#Front-End-App-Details)
-10. [Postman Collection](#Postman-Collection)
+10. [Front End App Details](#Front-End-App-Details)
+11. [Postman Collection](#Postman-Collection)
 
 ## Introduction
 
@@ -70,6 +71,23 @@ This service enables communication with Apache Kafka through RESTful APIs. It co
 - Apache Kafka command usage for various operations.
 - RESTful APIs for managing Kafka topics and messages.
 - Detailed descriptions and examples for each API endpoint.
+
+## Kafka Auto Setup
+This service can **automatically set up Kafka** based on system properties.
+
+### Configurable System Properties:
+| Property | Type | Description |
+|----------|------|-------------|
+| `spring.kafka.setup.kafka-auto-setup-required` | `boolean` | Enables Kafka auto-setup if `true` |
+| `spring.kafka.setup.kafka-user-defined-path-required` | `boolean` | Allows specifying a custom path for Kafka setup |
+| `spring.kafka.setup.kafka-user-defined-path` | `String` | Path where Kafka should be installed |
+
+### Behavior:
+- If `kafkaAutoSetupRequired = false`, Kafka auto-setup is **skipped**.
+- If `kafkaUserDefinedPathRequired = true`, Kafka setup will be done at `kafkaUserDefinedPath`.
+- If `kafkaUserDefinedPathRequired = false`, Kafka will be set up in the **Downloads folder**.
+
+---
 
 ## Usage
 
