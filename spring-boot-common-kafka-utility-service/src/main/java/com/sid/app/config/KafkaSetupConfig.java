@@ -21,7 +21,7 @@ import java.util.zip.GZIPInputStream;
  */
 @Configuration
 @Slf4j
-public class KafkaSetupService {
+public class KafkaSetupConfig {
 
     private static final String KAFKA_FOLDER_NAME = "kafka_setup";
     private static final String KAFKA_DOWNLOAD_URL = "https://downloads.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz";
@@ -31,7 +31,7 @@ public class KafkaSetupService {
 
     private final AppProperties appProperties;
 
-    public KafkaSetupService(AppProperties appProperties) {
+    public KafkaSetupConfig(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
 
@@ -45,47 +45,38 @@ public class KafkaSetupService {
 
             log.info("=== Kafka Setup Initialization ===");
 
-            // Determine setup path based on user configuration
             String setupBasePath = appProperties.isKafkaUserDefinedPathRequired()
                     ? appProperties.getKafkaUserDefinedPath()
                     : System.getProperty("user.home") + File.separator + "Downloads";
 
             Path kafkaSetupPath = Paths.get(setupBasePath, KAFKA_FOLDER_NAME);
-            File kafkaSetupFolder = kafkaSetupPath.toFile();
             Path kafkaArchivePath = kafkaSetupPath.resolve(KAFKA_ARCHIVE_NAME);
             Path finalKafkaFolder = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
 
             log.info("Kafka setup directory: {}", kafkaSetupPath);
 
-            // Step 1: Create setup folder if it does not exist
             if (!Files.exists(kafkaSetupPath)) {
-                log.info("Kafka setup folder not found. Creating directory...");
+                log.info("Creating Kafka setup directory...");
                 Files.createDirectories(kafkaSetupPath);
             } else {
-                log.info("Kafka setup folder already exists. Skipping directory creation.");
+                log.info("Kafka setup directory already exists.");
             }
 
-            // Step 2: Check if Kafka archive exists, if not, download it
             if (!Files.exists(kafkaArchivePath)) {
-                log.info("Kafka archive not found. Preparing to download...");
+                log.info("Kafka archive not found. Starting download...");
                 downloadKafka(kafkaArchivePath.toString());
             } else {
-                log.info("Kafka archive already exists at {}. Skipping download.", kafkaArchivePath);
+                log.info("Kafka archive already exists. Skipping download.");
             }
 
-            // Step 3: Extract Kafka archive if not already extracted
             if (!Files.exists(finalKafkaFolder)) {
                 log.info("Extracting Kafka archive...");
                 extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
-
-                // Ensure all streams are closed before renaming
                 TimeUnit.SECONDS.sleep(2);
                 renameKafkaFolder(kafkaSetupPath);
-
-                // Step 4: Delete the `kafka.tar` file after extraction
                 deleteKafkaTarFile(kafkaSetupPath);
             } else {
-                log.info("Kafka is already extracted and renamed. Skipping extraction.");
+                log.info("Kafka is already extracted and set up.");
             }
 
             log.info("=== Kafka Setup Completed ===");
@@ -96,13 +87,12 @@ public class KafkaSetupService {
         try {
             log.info("Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
             long fileSize = getFileSize(KAFKA_DOWNLOAD_URL);
-            log.info("File size before download: {} MB", fileSize / (1024 * 1024));
+            log.info("File size: {} MB", fileSize / (1024 * 1024));
 
             long startTime = System.currentTimeMillis();
             FileUtils.copyURLToFile(new URL(KAFKA_DOWNLOAD_URL), new File(filePath));
             long endTime = System.currentTimeMillis();
 
-            log.info("Kafka downloaded successfully at {}", filePath);
             log.info("Download completed in {} seconds.", (endTime - startTime) / 1000.0);
         } catch (IOException e) {
             log.error("Failed to download Kafka: {}", e.getMessage(), e);
@@ -119,32 +109,25 @@ public class KafkaSetupService {
             while ((bytesRead = gzipInputStream.read(buffer)) > 0) {
                 fileOutputStream.write(buffer, 0, bytesRead);
             }
-
             extractTarFile(destinationDir + File.separator + "kafka.tar", destinationDir);
-
-            log.info("Kafka extraction completed.");
         } catch (IOException e) {
             log.error("Failed to extract Kafka archive: {}", e.getMessage(), e);
         }
     }
 
     private void extractTarFile(String tarFilePath, String destinationDir) {
-        try (FileInputStream fis = new FileInputStream(tarFilePath);
-             BufferedInputStream bis = new BufferedInputStream(fis);
-             TarArchiveInputStream tis = new TarArchiveInputStream(bis)) {
-
+        try (TarArchiveInputStream tis = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream(tarFilePath)))) {
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 File outputFile = new File(destinationDir, entry.getName());
                 if (entry.isDirectory()) {
                     Files.createDirectories(outputFile.toPath());
                 } else {
-                    try (FileOutputStream fos = new FileOutputStream(outputFile);
-                         BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                         byte[] buffer = new byte[1024];
                         int bytesRead;
                         while ((bytesRead = tis.read(buffer)) != -1) {
-                            bos.write(buffer, 0, bytesRead);
+                            fos.write(buffer, 0, bytesRead);
                         }
                     }
                 }
@@ -161,28 +144,11 @@ public class KafkaSetupService {
                     .findFirst()
                     .ifPresent(extractedFolder -> {
                         Path renamedPath = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
-                        int attempts = 0;
-                        boolean renamed = false;
-
-                        while (attempts < 3 && !renamed) {
-                            try {
-                                log.info("Attempting to rename '{}' to '{}'", extractedFolder, renamedPath);
-                                Files.move(extractedFolder, renamedPath, StandardCopyOption.REPLACE_EXISTING);
-                                log.info("Successfully renamed '{}' to '{}'", extractedFolder, renamedPath);
-                                renamed = true;
-                            } catch (IOException e) {
-                                attempts++;
-                                log.warn("Rename attempt {} failed: {}. Retrying in 2 seconds...", attempts, e.getMessage());
-                                try {
-                                    Thread.sleep(3000);
-                                } catch (InterruptedException ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                            }
-                        }
-
-                        if (!renamed) {
-                            log.error("Failed to rename Kafka folder after multiple attempts.");
+                        try {
+                            Files.move(extractedFolder, renamedPath, StandardCopyOption.REPLACE_EXISTING);
+                            log.info("Successfully renamed Kafka folder.");
+                        } catch (IOException e) {
+                            log.error("Failed to rename Kafka folder: {}", e.getMessage(), e);
                         }
                     });
         } catch (IOException e) {
@@ -203,8 +169,7 @@ public class KafkaSetupService {
     }
 
     private long getFileSize(String fileUrl) throws IOException {
-        URL url = new URL(fileUrl);
-        return url.openConnection().getContentLengthLong();
+        return new URL(fileUrl).openConnection().getContentLengthLong();
     }
 
 }

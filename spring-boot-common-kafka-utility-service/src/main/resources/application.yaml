@@ -21,7 +21,7 @@ spring:
       zookeeper-logs-path: "C:\\Logs\\Kafka\\zookeeper-data"
     setup:
       kafka-auto-setup-required: true
-      kafka-user-defined-path-required: true
+      kafka-user-defined-path-required: false
       kafka-user-defined-path: "C:\\Users\\Siddhant Patni\\Documents"
   json:
     trusted:
