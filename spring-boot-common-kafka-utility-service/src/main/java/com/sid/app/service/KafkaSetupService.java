@@ -35,8 +35,17 @@ public class KafkaSetupService {
     private static final String EXTRACTED_FOLDER_PREFIX = "kafka_2.13-3.9.0";
     private static final String RENAMED_FOLDER_NAME = "kafka";
 
+    // Reactive sink to emit Kafka setup status updates
     private final Sinks.Many<String> kafkaSetupSink = Sinks.many().multicast().onBackpressureBuffer();
 
+    /**
+     * Kafka setup runner method to execute Kafka installation asynchronously.
+     *
+     * @param kafkaAutoSetupRequired       Flag indicating if automatic Kafka setup is required.
+     * @param kafkaUserDefinedPathRequired Flag indicating if a user-defined path should be used.
+     * @param kafkaUserDefinedPath         The user-defined installation path for Kafka (if applicable).
+     * @return ApplicationRunner to execute the setup process.
+     */
     public ApplicationRunner kafkaSetupRunner(boolean kafkaAutoSetupRequired, boolean kafkaUserDefinedPathRequired, String kafkaUserDefinedPath) {
         return args -> {
             if (!kafkaAutoSetupRequired) {
@@ -47,6 +56,7 @@ public class KafkaSetupService {
 
             log.info("kafkaSetupRunner() : === Kafka Setup Initialization ===");
 
+            // Determine the setup directory
             String setupBasePath = (kafkaUserDefinedPathRequired && kafkaUserDefinedPath != null && !kafkaUserDefinedPath.isEmpty())
                     ? kafkaUserDefinedPath
                     : System.getProperty("user.home") + File.separator + "Downloads";
@@ -60,11 +70,13 @@ public class KafkaSetupService {
             try {
                 Files.createDirectories(kafkaSetupPath);
 
+                // Download Kafka if not already present
                 if (!Files.exists(kafkaArchivePath)) {
                     log.info("kafkaSetupRunner() : Kafka archive not found. Downloading...");
                     downloadKafka(kafkaArchivePath.toString());
                 }
 
+                // Extract Kafka if not already set up
                 if (!Files.exists(finalKafkaFolder)) {
                     log.info("kafkaSetupRunner() : Extracting Kafka archive...");
                     extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
@@ -81,6 +93,11 @@ public class KafkaSetupService {
         };
     }
 
+    /**
+     * Downloads the Kafka archive from the official URL.
+     *
+     * @param filePath The destination path for the downloaded Kafka archive.
+     */
     private void downloadKafka(String filePath) {
         try {
             log.info("downloadKafka() : Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
@@ -91,6 +108,12 @@ public class KafkaSetupService {
         }
     }
 
+    /**
+     * Extracts the Kafka .tgz archive by first decompressing the GZIP and then extracting the TAR file.
+     *
+     * @param archivePath    Path to the .tgz Kafka archive.
+     * @param destinationDir Directory where Kafka should be extracted.
+     */
     private void extractKafkaArchive(String archivePath, String destinationDir) {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(archivePath));
              FileOutputStream fileOutputStream = new FileOutputStream(destinationDir + File.separator + "kafka.tar")) {
@@ -100,12 +123,19 @@ public class KafkaSetupService {
             while ((bytesRead = gzipInputStream.read(buffer)) > 0) {
                 fileOutputStream.write(buffer, 0, bytesRead);
             }
+
             extractTarFile(destinationDir + File.separator + "kafka.tar", destinationDir);
         } catch (IOException e) {
             log.error("extractKafkaArchive() : Failed to extract Kafka archive: {}", e.getMessage(), e);
         }
     }
 
+    /**
+     * Extracts the TAR file containing Kafka binaries into the specified directory.
+     *
+     * @param tarFilePath    Path to the extracted TAR file.
+     * @param destinationDir Directory where Kafka should be extracted.
+     */
     private void extractTarFile(String tarFilePath, String destinationDir) {
         try (TarArchiveInputStream tis = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream(tarFilePath)))) {
             TarArchiveEntry entry;
@@ -128,6 +158,11 @@ public class KafkaSetupService {
         }
     }
 
+    /**
+     * Renames the extracted Kafka folder to a standardized name.
+     *
+     * @param kafkaSetupPath Path where Kafka is extracted.
+     */
     private void renameKafkaFolder(Path kafkaSetupPath) {
         try (Stream<Path> paths = Files.list(kafkaSetupPath)) {
             paths.filter(Files::isDirectory)
@@ -147,6 +182,11 @@ public class KafkaSetupService {
         }
     }
 
+    /**
+     * Deletes the temporary TAR file after extraction to free up space.
+     *
+     * @param kafkaSetupPath Path where Kafka setup files are located.
+     */
     private void deleteKafkaTarFile(Path kafkaSetupPath) {
         Path kafkaTarPath = kafkaSetupPath.resolve("kafka.tar");
         try {
