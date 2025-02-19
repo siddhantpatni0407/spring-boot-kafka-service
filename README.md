@@ -5,9 +5,8 @@
 1. [Introduction](#introduction)
 2. [Description](#description)
 3. [Features](#features)
-4. [Kafka Auto Setup](#kafka-auto-setup)
-5. [Usage](#usage)
-6. [Key Concepts](#key-concepts)
+   4[Usage](#usage)
+5. [Key Concepts](#key-concepts)
     - [Kafka Cluster](#kafka-cluster)
     - [Kafka Broker](#kafka-broker)
     - [Kafka Producer](#kafka-producer)
@@ -17,8 +16,8 @@
     - [Offsets](#offsets)
     - [Consumer Groups](#consumer-groups)
     - [Serialization](#serialization)
-7. [Demo Application](#demo-application)
-8. [Diagrams](#diagrams)
+6. [Demo Application](#demo-application)
+7. [Diagrams](#diagrams)
     - [Kafka - Sequence Diagram](#kafka---sequence-diagram)
     - [Kafka - Sequence Diagram - Error Handling Implementation](#kafka---sequence-diagram---error-handling-implementation)
     - [Kafka - Flow Diagram - 1](#kafka---flow-diagram---1)
@@ -26,25 +25,26 @@
     - [Kafka - Flow Diagram - 3](#kafka---flow-diagram---3)
     - [Kafka - Flow Diagram - 4](#kafka---flow-diagram---4)
     - [Kafka - Block Diagram](#kafka---block-diagram)
-9. [Apache Kafka Commands](#apache-kafka-commands)
+8. [Apache Kafka Commands](#apache-kafka-commands)
     - [Prerequisites](#prerequisites)
     - [Steps - For Open Source Kafka Server](#steps---for-open-source-kafka-server)
     - [API Details](#api-details)
-        - [1. Start Server](#1-start-server)
-        - [2. Stop Server](#2-stop-server)
-        - [3. Create Topic](#3-create-topic)
-        - [4. Get All Topics](#4-get-all-topics)
-        - [5. Get Topic Details](#5-get-topic-details)
-        - [6. Delete Topic](#6-delete-topic)
-        - [7. Delete Kafka Logs](#7-delete-kafka-logs)
-        - [8. Publish Message](#8-publish-message)
-        - [9. Send Events](#9-send-events)
-        - [10. Publish Events (Error Handling)](#10-publish-events-error-handling)
+        - [1. Setup Kafka Server](#1-setup-kafka-server)
+        - [2. Start Server](#2-start-server)
+        - [3. Stop Server](#3-stop-server)
+        - [4. Create Topic](#4-create-topic)
+        - [5. Get All Topics](#5-get-all-topics)
+        - [6. Get Topic Details](#6-get-topic-details)
+        - [7. Delete Topic](#7-delete-topic)
+        - [8. Delete Kafka Logs](#8-delete-kafka-logs)
+        - [9. Publish Message](#9-publish-message)
+        - [10. Send Events](#10-send-events)
+        - [11. Publish Events (Error Handling)](#11-publish-events-error-handling)
     - [API Summary](#api-summary)
         - [Overview](#overview)
         - [API Endpoints](#api-endpoints)
-10. [Front End App Details](#Front-End-App-Details)
-11. [Postman Collection](#Postman-Collection)
+9. [Front End App Details](#Front-End-App-Details)
+10. [Postman Collection](#Postman-Collection)
 
 ## Introduction
 
@@ -73,21 +73,8 @@ This service enables communication with Apache Kafka through RESTful APIs. It co
 - Detailed descriptions and examples for each API endpoint.
 
 ## Kafka Auto Setup
+
 This service can **automatically set up Kafka** based on system properties.
-
-### Configurable System Properties:
-| Property | Type | Description |
-|----------|------|-------------|
-| `spring.kafka.setup.kafka-auto-setup-required` | `boolean` | Enables Kafka auto-setup if `true` |
-| `spring.kafka.setup.kafka-user-defined-path-required` | `boolean` | Allows specifying a custom path for Kafka setup |
-| `spring.kafka.setup.kafka-user-defined-path` | `String` | Path where Kafka should be installed |
-
-### Behavior:
-- If `kafkaAutoSetupRequired = false`, Kafka auto-setup is **skipped**.
-- If `kafkaUserDefinedPathRequired = true`, Kafka setup will be done at `kafkaUserDefinedPath`.
-- If `kafkaUserDefinedPathRequired = false`, Kafka will be set up in the **Downloads folder**.
-
----
 
 ## Usage
 
@@ -97,7 +84,9 @@ For detailed usage instructions and examples, refer to the API documentation in 
 
 ## Key Concepts
 
-Apache Kafka is a distributed, fault-tolerant, and highly scalable message broker and stream processing platform. It was originally developed by LinkedIn and later open-sourced as an Apache Software Foundation project. Kafka is designed to handle large volumes of data streams in a real-time and fault-tolerant manner.
+Apache Kafka is a distributed, fault-tolerant, and highly scalable message broker and stream processing platform. It was
+originally developed by LinkedIn and later open-sourced as an Apache Software Foundation project. Kafka is designed to
+handle large volumes of data streams in a real-time and fault-tolerant manner.
 
 Key Components of Kafka:
 Producer: An application that publishes messages to Kafka topics.
@@ -110,49 +99,64 @@ Producer: An application that publishes messages to Kafka topics.
   ![Kafka topics](img/kafka_overview.png)
 
 ### Kafka Cluster
-A Kafka cluster is a group of one or more Kafka brokers (servers) working together to manage the storage and exchange of data in the form of messages. Kafka is designed to operate as a distributed system, and a cluster allows it to scale horizontally, provide fault tolerance, and handle large volumes of data across multiple nodes.
+
+A Kafka cluster is a group of one or more Kafka brokers (servers) working together to manage the storage and exchange of
+data in the form of messages. Kafka is designed to operate as a distributed system, and a cluster allows it to scale
+horizontally, provide fault tolerance, and handle large volumes of data across multiple nodes.
 ![Kafka topics](img/kafka_cluster.png)
 
 ### Kafka Broker
+
 Kafka brokers form the core of the Kafka cluster, storing and managing the streams of records.
 ![kafka_broker.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_broker.png)
 
 ### Kafka Producer
-Producers are applications or systems that publish messages to Kafka topics. Producers determine which partition within a topic a message should be sent to.
+
+Producers are applications or systems that publish messages to Kafka topics. Producers determine which partition within
+a topic a message should be sent to.
 ![kafka_producer.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_producer.png)
 
 ### Kafka Consumer
-Consumers are applications or systems that subscribe to Kafka topics and process the messages. Consumers can be part of a consumer group, allowing them to parallelize the processing of messages.
+
+Consumers are applications or systems that subscribe to Kafka topics and process the messages. Consumers can be part of
+a consumer group, allowing them to parallelize the processing of messages.
 ![kafka_consumer.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_consumer.png)
 
 ### Kafka Topics
 
-A Kafka topic is a category or feed name to which records (messages) are published. Topics help organize and categorize messages.
+A Kafka topic is a category or feed name to which records (messages) are published. Topics help organize and categorize
+messages.
 ![kafka_topic.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_topic.png)
 ---
 
 ### Partitions
 
-Topics are divided into partitions, allowing for parallel processing and scalability. Each partition is assigned to a specific broker.
+Topics are divided into partitions, allowing for parallel processing and scalability. Each partition is assigned to a
+specific broker.
 ![kafka_partitions.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_partitions.png)
 ---
 
 ### Offsets
 
-Offsets represent the position of a message within a partition. Consumers use offsets to track their progress and resume processing from the last committed offset.
+Offsets represent the position of a message within a partition. Consumers use offsets to track their progress and resume
+processing from the last committed offset.
 ![kafka_offset.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_offset.png)
 ---
 
 ### Consumer Groups
 
-Consumer groups allow for parallel and scalable message processing. Consumers within a group coordinate to consume messages from one or more partitions.
+Consumer groups allow for parallel and scalable message processing. Consumers within a group coordinate to consume
+messages from one or more partitions.
 ![kafka_consumer_groups.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_consumer_groups.png)
 ---
 
 ### Serialization
-Serialization is the process of converting data to a format suitable for transmission. Kafka allows custom serializers for key and value objects.
+
+Serialization is the process of converting data to a format suitable for transmission. Kafka allows custom serializers
+for key and value objects.
 
 ## Demo Application
+
 ![kafka_demo_application.png](src%2Fmain%2Fresources%2Fartifacts%2Fkafka_demo_application.png)
 
 ## Diagrams
@@ -586,11 +590,66 @@ the [official website](https://kafka.apache.org/downloads).
 
 ### Overview
 
-This document outlines the API endpoints provided by the Kafka Service for managing Kafka topics, publishing messages, and handling errors.
+This document outlines the API endpoints provided by the Kafka Service for managing Kafka topics, publishing messages,
+and handling errors.
 
 ### API Endpoints
 
-### 1. Start Server
+### 1. Setup Kafka Server
+
+- **URL:** http://localhost:8081/api/v1/kafka-service/kafka/setup
+- **Method:** POST
+- **Description:** The **Kafka Setup Endpoint** in this Spring Boot service allows users to dynamically set up Kafka. Users can choose between automatic setup or specifying a custom directory for Kafka installation.
+
+### **Request Parameters**
+
+| Parameter                    | Type    | Required | Description                                                                                   |
+|------------------------------|---------|----------|-----------------------------------------------------------------------------------------------|
+| kafkaAutoSetupRequired       | boolean | Yes      | Enables or disables automatic Kafka setup.                                                    |
+| kafkaUserDefinedPathRequired | boolean | Yes      | Specifies if a custom Kafka installation path is required.                                    |
+| kafkaUserDefinedPath         | String  | No       | Custom path where Kafka should be installed. Required if `kafkaUserDefinedPathRequired=true`. |
+
+### **Example Request**
+
+#### **1. Automatic Kafka Setup**
+
+```
+POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequired=true&kafkaUserDefinedPathRequired=false
+```
+
+#### **2. User Defined Kafka Path Setup**
+
+```
+POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequired=true&kafkaUserDefinedPathRequired=true&kafkaUserDefinedPath=C:\Users\Kafka\Setup
+```
+
+## Response Structure
+
+### **Success Response**
+
+```json
+{
+  "status": "Kafka setup completed successfully."
+}
+```
+
+### **Setup Skipped Response**
+
+```json
+{
+  "status": "Kafka setup skipped."
+}
+```
+
+### **Error Response**
+
+```json
+{
+  "errorMessage": "An unexpected error occurred during Kafka setup."
+}
+```
+
+### 2. Start Server
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/start-server
 - **Method:** POST
@@ -598,7 +657,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Zookeeper and Kafka servers started successfully.
 
-### 2. Stop Server
+### 3. Stop Server
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/stop-server
 - **Method:** POST
@@ -606,7 +665,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Zookeeper and Kafka servers stopped successfully.
 
-### 3. Create Topic
+### 4. Create Topic
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic
 - **Method:** POST
@@ -617,7 +676,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Topic created successfully.
 
-### 4. Get All Topics
+### 5. Get All Topics
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic
 - **Method:** GET
@@ -625,7 +684,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - List of topic names.
 
-### 5. Get Topic Details
+### 6. Get Topic Details
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName={topic-name}
 - **Method:** GET
@@ -635,7 +694,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Details of the specified Kafka topic.
 
-### 6. Delete Topic
+### 7. Delete Topic
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName={topic-name}
 - **Method:** DELETE
@@ -645,7 +704,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Topic deleted successfully.
 
-### 7. Delete Kafka Logs
+### 8. Delete Kafka Logs
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/logs
 - **Method:** DELETE
@@ -653,7 +712,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Kafka and Zookeeper logs deleted successfully.
 
-### 8. Publish Message
+### 9. Publish Message
 
 - **URL:** http://localhost:8082/api/v1/kafka-service/publish
 - **Method:** GET
@@ -661,7 +720,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Message published successfully.
 
-### 9. Send Events
+### 10. Send Events
 
 - **URL:** http://localhost:8082/api/v1/kafka-service/publish
 - **Method:** POST
@@ -670,7 +729,7 @@ This document outlines the API endpoints provided by the Kafka Service for manag
 - **Response:**
     - Status: Events published successfully.
 
-### 10. Publish Events (Error Handling)
+### 11. Publish Events (Error Handling)
 
 - **URL:** http://localhost:8084/api/v1/kafka-service/error-handling/producer
 - **Method:** POST
