@@ -10,6 +10,80 @@
 			"name": "Kafka Utility",
 			"item": [
 				{
+					"name": "Setup Kafka",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequired=false&kafkaUserDefinedPathRequired=false&kafkaUserDefinedPath=C:%5CUsers%5CSiddhant%20Patni%5CDocuments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"setup"
+							],
+							"query": [
+								{
+									"key": "kafkaAutoSetupRequired",
+									"value": "false",
+									"description": "boolean"
+								},
+								{
+									"key": "kafkaUserDefinedPathRequired",
+									"value": "false",
+									"description": "boolean"
+								},
+								{
+									"key": "kafkaUserDefinedPath",
+									"value": "C:%5CUsers%5CSiddhant%20Patni%5CDocuments",
+									"description": "String"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Start Kafka Servers",
 					"request": {
 						"auth": {
@@ -288,7 +362,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=kafka-demo",
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=sid",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -305,7 +379,7 @@
 							"query": [
 								{
 									"key": "topicName",
-									"value": "kafka-demo"
+									"value": "sid"
 								}
 							]
 						}

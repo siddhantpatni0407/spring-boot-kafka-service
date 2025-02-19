@@ -9,6 +9,7 @@ public class AppConstants {
     /**
      * Constant for the Kafka publish message endpoint.
      */
+    public static final String START_KAFKA_SETUP_ENDPOINT = "/api/v1/kafka-service/kafka/setup";
     public static final String START_KAFKA_SERVERS_ENDPOINT = "/api/v1/kafka-service/kafka/start-server";
     public static final String STOP_KAFKA_SERVERS_ENDPOINT = "/api/v1/kafka-service/kafka/stop-server";
     public static final String KAFKA_CREATE_TOPIC_ENDPOINT = "/api/v1/kafka-service/kafka/create-topic";

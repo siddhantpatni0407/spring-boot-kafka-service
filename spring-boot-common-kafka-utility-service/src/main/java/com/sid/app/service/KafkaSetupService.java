@@ -1,14 +1,20 @@
-package com.sid.app.config;
+package com.sid.app.service;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Sinks;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.net.URL;
 import java.nio.file.*;
 import java.util.concurrent.TimeUnit;
@@ -16,12 +22,12 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Configuration class responsible for setting up Kafka dynamically upon application startup.
- * Downloads, extracts, and configures Kafka based on system properties.
+ * Service class responsible for setting up Kafka dynamically based on request parameters.
  */
-@Configuration
+@Getter
+@Service
 @Slf4j
-public class KafkaSetupConfig {
+public class KafkaSetupService {
 
     private static final String KAFKA_FOLDER_NAME = "kafka_setup";
     private static final String KAFKA_DOWNLOAD_URL = "https://downloads.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz";
@@ -29,30 +35,20 @@ public class KafkaSetupConfig {
     private static final String EXTRACTED_FOLDER_PREFIX = "kafka_2.13-3.9.0";
     private static final String RENAMED_FOLDER_NAME = "kafka";
 
-    private final AppProperties appProperties;
+    private final Sinks.Many<String> kafkaSetupSink = Sinks.many().multicast().onBackpressureBuffer();
 
-    public KafkaSetupConfig(AppProperties appProperties) {
-        this.appProperties = appProperties;
-    }
-
-    /**
-     * Application runner that sets up Kafka if required.
-     *
-     * @return ApplicationRunner instance
-     */
-    @Bean
-    public ApplicationRunner kafkaSetupRunner() {
+    public ApplicationRunner kafkaSetupRunner(boolean kafkaAutoSetupRequired, boolean kafkaUserDefinedPathRequired, String kafkaUserDefinedPath) {
         return args -> {
-            if (!appProperties.isKafkaAutoSetupRequired()) {
-                log.info("Kafka auto setup is disabled. Skipping Kafka setup.");
+            if (!kafkaAutoSetupRequired) {
+                log.info("Kafka auto setup is disabled. Skipping setup.");
+                kafkaSetupSink.tryEmitNext("Kafka setup skipped.");
                 return;
             }
 
             log.info("=== Kafka Setup Initialization ===");
 
-            // Determine setup path based on user configuration
-            String setupBasePath = appProperties.isKafkaUserDefinedPathRequired()
-                    ? appProperties.getKafkaUserDefinedPath()
+            String setupBasePath = (kafkaUserDefinedPathRequired && kafkaUserDefinedPath != null && !kafkaUserDefinedPath.isEmpty())
+                    ? kafkaUserDefinedPath
                     : System.getProperty("user.home") + File.separator + "Downloads";
 
             Path kafkaSetupPath = Paths.get(setupBasePath, KAFKA_FOLDER_NAME);
@@ -61,49 +57,40 @@ public class KafkaSetupConfig {
 
             log.info("Kafka setup directory: {}", kafkaSetupPath);
 
-            // Step 1: Create setup folder if it does not exist
-            Files.createDirectories(kafkaSetupPath);
+            try {
+                Files.createDirectories(kafkaSetupPath);
 
-            // Step 2: Download Kafka if archive does not exist
-            if (!Files.exists(kafkaArchivePath)) {
-                log.info("Kafka archive not found. Downloading...");
-                downloadKafka(kafkaArchivePath.toString());
+                if (!Files.exists(kafkaArchivePath)) {
+                    log.info("Kafka archive not found. Downloading...");
+                    downloadKafka(kafkaArchivePath.toString());
+                }
+
+                if (!Files.exists(finalKafkaFolder)) {
+                    log.info("Extracting Kafka archive...");
+                    extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
+                    TimeUnit.SECONDS.sleep(2);
+                    renameKafkaFolder(kafkaSetupPath);
+                    deleteKafkaTarFile(kafkaSetupPath);
+                }
+                log.info("=== Kafka Setup Completed Successfully ===");
+                kafkaSetupSink.tryEmitNext("Kafka setup completed successfully.");
+            } catch (Exception e) {
+                log.error("Error during Kafka setup: {}", e.getMessage(), e);
+                kafkaSetupSink.tryEmitNext("Error during Kafka setup: " + e.getMessage());
             }
-
-            // Step 3: Extract Kafka archive if not already extracted
-            if (!Files.exists(finalKafkaFolder)) {
-                log.info("Extracting Kafka archive...");
-                extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
-                TimeUnit.SECONDS.sleep(2);
-                renameKafkaFolder(kafkaSetupPath);
-                deleteKafkaTarFile(kafkaSetupPath);
-            }
-
-            log.info("=== Kafka Setup Completed ===");
         };
     }
 
-    /**
-     * Downloads Kafka from the specified URL.
-     *
-     * @param filePath Path to save the downloaded file.
-     */
     private void downloadKafka(String filePath) {
         try {
             log.info("Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
             FileUtils.copyURLToFile(new URL(KAFKA_DOWNLOAD_URL), new File(filePath));
-            log.info("Kafka downloaded successfully at {}", filePath);
+            log.info("Kafka downloaded successfully.");
         } catch (IOException e) {
             log.error("Failed to download Kafka: {}", e.getMessage(), e);
         }
     }
 
-    /**
-     * Extracts the Kafka archive.
-     *
-     * @param archivePath    Path of the compressed archive.
-     * @param destinationDir Destination directory for extraction.
-     */
     private void extractKafkaArchive(String archivePath, String destinationDir) {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(archivePath));
              FileOutputStream fileOutputStream = new FileOutputStream(destinationDir + File.separator + "kafka.tar")) {
@@ -119,12 +106,6 @@ public class KafkaSetupConfig {
         }
     }
 
-    /**
-     * Extracts a TAR file.
-     *
-     * @param tarFilePath    Path to the TAR file.
-     * @param destinationDir Directory to extract the contents.
-     */
     private void extractTarFile(String tarFilePath, String destinationDir) {
         try (TarArchiveInputStream tis = new TarArchiveInputStream(new BufferedInputStream(new FileInputStream(tarFilePath)))) {
             TarArchiveEntry entry;
@@ -147,11 +128,6 @@ public class KafkaSetupConfig {
         }
     }
 
-    /**
-     * Renames the extracted Kafka folder.
-     *
-     * @param kafkaSetupPath Base setup path containing extracted files.
-     */
     private void renameKafkaFolder(Path kafkaSetupPath) {
         try (Stream<Path> paths = Files.list(kafkaSetupPath)) {
             paths.filter(Files::isDirectory)
@@ -171,11 +147,6 @@ public class KafkaSetupConfig {
         }
     }
 
-    /**
-     * Deletes the temporary Kafka TAR file after extraction.
-     *
-     * @param kafkaSetupPath Path containing the TAR file.
-     */
     private void deleteKafkaTarFile(Path kafkaSetupPath) {
         Path kafkaTarPath = kafkaSetupPath.resolve("kafka.tar");
         try {

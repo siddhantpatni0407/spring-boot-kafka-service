@@ -4,12 +4,10 @@ import com.sid.app.constant.AppConstants;
 import com.sid.app.model.Response;
 import com.sid.app.model.TopicDetails;
 import com.sid.app.service.KafkaService;
+import com.sid.app.service.KafkaSetupService;
 import com.sid.app.utils.ApplicationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.TopicPartitionInfo;
-import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,7 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Siddhant Patni
@@ -30,6 +30,45 @@ public class KafkaController {
 
     @Autowired
     private KafkaService kafkaService;
+
+    @Autowired
+    private KafkaSetupService kafkaSetupService;
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    /**
+     * API to trigger Kafka setup based on request parameters.
+     *
+     * @param kafkaAutoSetupRequired       Whether Kafka setup is required.
+     * @param kafkaUserDefinedPathRequired Whether user-defined path should be used.
+     * @param kafkaUserDefinedPath         The user-defined path if applicable.
+     * @return Response indicating setup completion.
+     */
+    @PostMapping(value = AppConstants.START_KAFKA_SETUP_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Response>> setupKafka(@RequestParam boolean kafkaAutoSetupRequired,
+                                                     @RequestParam boolean kafkaUserDefinedPathRequired,
+                                                     @RequestParam(required = false) String kafkaUserDefinedPath) {
+        return Mono.fromFuture(CompletableFuture.supplyAsync(() -> {
+            Response response = Response.builder().build();
+
+            if (!kafkaAutoSetupRequired) {
+                log.info("Kafka auto setup is disabled. Skipping setup.");
+                response.setStatus("Kafka setup skipped.");
+                return ResponseEntity.ok(response);
+            }
+
+            try {
+                kafkaSetupService.kafkaSetupRunner(kafkaAutoSetupRequired, kafkaUserDefinedPathRequired, kafkaUserDefinedPath).run(null);
+                log.info("Kafka setup completed successfully.");
+                response.setStatus("Kafka setup completed successfully.");
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                response.setErrorMessage("An unexpected error occurred during Kafka setup.");
+                log.error("Unexpected error during Kafka setup: {}", e.getMessage(), e);
+                return ResponseEntity.status(500).body(response);
+            }
+        }, executorService));
+    }
 
     @PostMapping(value = AppConstants.KAFKA_CREATE_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> createTopic(@RequestParam(value = "topicName") String topicName,
