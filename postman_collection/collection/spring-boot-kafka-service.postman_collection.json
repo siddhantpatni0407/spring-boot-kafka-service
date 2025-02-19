@@ -323,6 +323,139 @@
 					"response": []
 				},
 				{
+					"name": "Kafka Publish Message",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/publish?topicName=demo&message=Hi",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"publish"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "demo",
+									"description": "String"
+								},
+								{
+									"key": "message",
+									"value": "Hi",
+									"description": "String"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Kafka Consume Message",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/consume?topicName=demo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"consume"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "demo",
+									"description": "String"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Topic Details",
 					"request": {
 						"auth": {
