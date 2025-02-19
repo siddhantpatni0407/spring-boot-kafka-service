@@ -16,5 +16,7 @@ public class AppConstants {
     public static final String KAFKA_TOPIC_ENDPOINT = "/api/v1/kafka-service/kafka/topic";
     public static final String KAFKA_TOPIC_DETAILS_ENDPOINT = "/api/v1/kafka-service/kafka/topic/details";
     public static final String DELETE_KAFKA_LOGS_ENDPOINT = "/api/v1/kafka-service/kafka/logs";
+    public static final String KAFKA_PUBLISH_MESSAGE_ENDPOINT = "/api/v1/kafka-service/kafka/publish";
+    public static final String KAFKA_CONSUME_MESSAGE_ENDPOINT = "/api/v1/kafka-service/kafka/consume";
 
 }
