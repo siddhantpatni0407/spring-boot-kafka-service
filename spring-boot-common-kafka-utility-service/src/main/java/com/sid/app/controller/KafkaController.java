@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -45,12 +47,15 @@ public class KafkaController {
      * @return Response indicating setup completion.
      */
     @PostMapping(value = AppConstants.START_KAFKA_SETUP_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Response>> setupKafka(@RequestParam boolean kafkaAutoSetupRequired,
-                                                     @RequestParam boolean kafkaUserDefinedPathRequired,
-                                                     @RequestParam(required = false) String kafkaUserDefinedPath) {
+    public Mono<ResponseEntity<Response>> setupKafka(
+            @RequestParam boolean kafkaAutoSetupRequired,
+            @RequestParam boolean kafkaUserDefinedPathRequired,
+            @RequestParam(required = false) String kafkaUserDefinedPath) {
+
         return Mono.fromFuture(CompletableFuture.supplyAsync(() -> {
             Response response = Response.builder().build();
 
+            // ✅ If auto-setup is disabled, return immediately
             if (!kafkaAutoSetupRequired) {
                 log.info("Kafka auto setup is disabled. Skipping setup.");
                 response.setStatus("Kafka setup skipped.");
@@ -58,14 +63,33 @@ public class KafkaController {
             }
 
             try {
-                kafkaSetupService.kafkaSetupRunner(kafkaAutoSetupRequired, kafkaUserDefinedPathRequired, kafkaUserDefinedPath).run(null);
+                // ✅ Declare a new local final variable
+                final String resolvedKafkaPath;
+
+                if (kafkaUserDefinedPathRequired && kafkaUserDefinedPath != null) {
+                    resolvedKafkaPath = URLDecoder.decode(kafkaUserDefinedPath, StandardCharsets.UTF_8);
+                    log.info("Decoded Kafka setup path: {}", resolvedKafkaPath);
+
+                    // ✅ Validate path (optional check)
+                    if (resolvedKafkaPath.isBlank()) {
+                        response.setErrorMessage("Error: Path is required for manual setup.");
+                        return ResponseEntity.badRequest().body(response);
+                    }
+                } else {
+                    resolvedKafkaPath = null; // No user-defined path
+                }
+
+                // ✅ Run Kafka setup with the final variable
+                kafkaSetupService.kafkaSetupRunner(kafkaAutoSetupRequired, kafkaUserDefinedPathRequired, resolvedKafkaPath).run(null);
+
                 log.info("Kafka setup completed successfully.");
                 response.setStatus("Kafka setup completed successfully.");
                 return ResponseEntity.ok(response);
+
             } catch (Exception e) {
+                log.error("❌ Unexpected error during Kafka setup: {}", e.getMessage(), e);
                 response.setErrorMessage("An unexpected error occurred during Kafka setup.");
-                log.error("Unexpected error during Kafka setup: {}", e.getMessage(), e);
-                return ResponseEntity.status(500).body(response);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
         }, executorService));
     }
