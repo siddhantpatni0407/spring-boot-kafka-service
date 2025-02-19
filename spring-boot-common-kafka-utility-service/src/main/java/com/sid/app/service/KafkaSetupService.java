@@ -40,12 +40,12 @@ public class KafkaSetupService {
     public ApplicationRunner kafkaSetupRunner(boolean kafkaAutoSetupRequired, boolean kafkaUserDefinedPathRequired, String kafkaUserDefinedPath) {
         return args -> {
             if (!kafkaAutoSetupRequired) {
-                log.info("Kafka auto setup is disabled. Skipping setup.");
+                log.info("kafkaSetupRunner() : Kafka auto setup is disabled. Skipping setup.");
                 kafkaSetupSink.tryEmitNext("Kafka setup skipped.");
                 return;
             }
 
-            log.info("=== Kafka Setup Initialization ===");
+            log.info("kafkaSetupRunner() : === Kafka Setup Initialization ===");
 
             String setupBasePath = (kafkaUserDefinedPathRequired && kafkaUserDefinedPath != null && !kafkaUserDefinedPath.isEmpty())
                     ? kafkaUserDefinedPath
@@ -55,27 +55,27 @@ public class KafkaSetupService {
             Path kafkaArchivePath = kafkaSetupPath.resolve(KAFKA_ARCHIVE_NAME);
             Path finalKafkaFolder = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
 
-            log.info("Kafka setup directory: {}", kafkaSetupPath);
+            log.info("kafkaSetupRunner() : Kafka setup directory: {}", kafkaSetupPath);
 
             try {
                 Files.createDirectories(kafkaSetupPath);
 
                 if (!Files.exists(kafkaArchivePath)) {
-                    log.info("Kafka archive not found. Downloading...");
+                    log.info("kafkaSetupRunner() : Kafka archive not found. Downloading...");
                     downloadKafka(kafkaArchivePath.toString());
                 }
 
                 if (!Files.exists(finalKafkaFolder)) {
-                    log.info("Extracting Kafka archive...");
+                    log.info("kafkaSetupRunner() : Extracting Kafka archive...");
                     extractKafkaArchive(kafkaArchivePath.toString(), kafkaSetupPath.toString());
                     TimeUnit.SECONDS.sleep(2);
                     renameKafkaFolder(kafkaSetupPath);
                     deleteKafkaTarFile(kafkaSetupPath);
                 }
-                log.info("=== Kafka Setup Completed Successfully ===");
+                log.info("kafkaSetupRunner() : === Kafka Setup Completed Successfully ===");
                 kafkaSetupSink.tryEmitNext("Kafka setup completed successfully.");
             } catch (Exception e) {
-                log.error("Error during Kafka setup: {}", e.getMessage(), e);
+                log.error("kafkaSetupRunner() : Error during Kafka setup: {}", e.getMessage(), e);
                 kafkaSetupSink.tryEmitNext("Error during Kafka setup: " + e.getMessage());
             }
         };
@@ -83,11 +83,11 @@ public class KafkaSetupService {
 
     private void downloadKafka(String filePath) {
         try {
-            log.info("Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
+            log.info("downloadKafka() : Downloading Kafka from {} to {}", KAFKA_DOWNLOAD_URL, filePath);
             FileUtils.copyURLToFile(new URL(KAFKA_DOWNLOAD_URL), new File(filePath));
-            log.info("Kafka downloaded successfully.");
+            log.info("downloadKafka() : Kafka downloaded successfully.");
         } catch (IOException e) {
-            log.error("Failed to download Kafka: {}", e.getMessage(), e);
+            log.error("downloadKafka() : Failed to download Kafka: {}", e.getMessage(), e);
         }
     }
 
@@ -102,7 +102,7 @@ public class KafkaSetupService {
             }
             extractTarFile(destinationDir + File.separator + "kafka.tar", destinationDir);
         } catch (IOException e) {
-            log.error("Failed to extract Kafka archive: {}", e.getMessage(), e);
+            log.error("extractKafkaArchive() : Failed to extract Kafka archive: {}", e.getMessage(), e);
         }
     }
 
@@ -124,7 +124,7 @@ public class KafkaSetupService {
                 }
             }
         } catch (IOException e) {
-            log.error("Failed to extract Kafka TAR file: {}", e.getMessage(), e);
+            log.error("extractTarFile() : Failed to extract Kafka TAR file: {}", e.getMessage(), e);
         }
     }
 
@@ -137,13 +137,13 @@ public class KafkaSetupService {
                         Path renamedPath = kafkaSetupPath.resolve(RENAMED_FOLDER_NAME);
                         try {
                             Files.move(extractedFolder, renamedPath, StandardCopyOption.REPLACE_EXISTING);
-                            log.info("Successfully renamed Kafka folder to {}", renamedPath);
+                            log.info("renameKafkaFolder() : Successfully renamed Kafka folder to {}", renamedPath);
                         } catch (IOException e) {
-                            log.error("Failed to rename Kafka folder: {}", e.getMessage(), e);
+                            log.error("renameKafkaFolder() : Failed to rename Kafka folder: {}", e.getMessage(), e);
                         }
                     });
         } catch (IOException e) {
-            log.error("Error renaming Kafka folder: {}", e.getMessage(), e);
+            log.error("renameKafkaFolder() : Error renaming Kafka folder: {}", e.getMessage(), e);
         }
     }
 
@@ -151,9 +151,9 @@ public class KafkaSetupService {
         Path kafkaTarPath = kafkaSetupPath.resolve("kafka.tar");
         try {
             Files.deleteIfExists(kafkaTarPath);
-            log.info("Deleted temporary kafka.tar file.");
+            log.info("deleteKafkaTarFile() : Deleted temporary kafka.tar file.");
         } catch (IOException e) {
-            log.error("Failed to delete kafka.tar: {}", e.getMessage(), e);
+            log.error("deleteKafkaTarFile() : Failed to delete kafka.tar: {}", e.getMessage(), e);
         }
     }
 

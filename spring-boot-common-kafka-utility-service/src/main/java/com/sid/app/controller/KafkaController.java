@@ -57,7 +57,7 @@ public class KafkaController {
 
             // ✅ If auto-setup is disabled, return immediately
             if (!kafkaAutoSetupRequired) {
-                log.info("Kafka auto setup is disabled. Skipping setup.");
+                log.info("setupKafka() : Kafka auto setup is disabled. Skipping setup.");
                 response.setStatus("Kafka setup skipped.");
                 return ResponseEntity.ok(response);
             }
@@ -68,7 +68,7 @@ public class KafkaController {
 
                 if (kafkaUserDefinedPathRequired && kafkaUserDefinedPath != null) {
                     resolvedKafkaPath = URLDecoder.decode(kafkaUserDefinedPath, StandardCharsets.UTF_8);
-                    log.info("Decoded Kafka setup path: {}", resolvedKafkaPath);
+                    log.info("setupKafka() : Decoded Kafka setup path: {}", resolvedKafkaPath);
 
                     // ✅ Validate path (optional check)
                     if (resolvedKafkaPath.isBlank()) {
@@ -82,12 +82,12 @@ public class KafkaController {
                 // ✅ Run Kafka setup with the final variable
                 kafkaSetupService.kafkaSetupRunner(kafkaAutoSetupRequired, kafkaUserDefinedPathRequired, resolvedKafkaPath).run(null);
 
-                log.info("Kafka setup completed successfully.");
+                log.info("setupKafka() : Kafka setup completed successfully.");
                 response.setStatus("Kafka setup completed successfully.");
                 return ResponseEntity.ok(response);
 
             } catch (Exception e) {
-                log.error("❌ Unexpected error during Kafka setup: {}", e.getMessage(), e);
+                log.error("setupKafka() : ❌ Unexpected error during Kafka setup: {}", e.getMessage(), e);
                 response.setErrorMessage("An unexpected error occurred during Kafka setup.");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
