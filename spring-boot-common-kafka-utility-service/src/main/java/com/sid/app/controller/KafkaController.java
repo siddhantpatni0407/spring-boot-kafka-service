@@ -3,6 +3,7 @@ package com.sid.app.controller;
 import com.sid.app.constant.AppConstants;
 import com.sid.app.model.Response;
 import com.sid.app.model.TopicDetails;
+import com.sid.app.service.KafkaHealthCheckService;
 import com.sid.app.service.KafkaService;
 import com.sid.app.service.KafkaSetupService;
 import com.sid.app.utils.ApplicationUtils;
@@ -36,7 +37,32 @@ public class KafkaController {
     @Autowired
     private KafkaSetupService kafkaSetupService;
 
+    @Autowired
+    private KafkaHealthCheckService kafkaHealthCheckService;
+
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    /**
+     * Health check endpoint to verify Kafka connectivity.
+     *
+     * @return ResponseEntity<Response> indicating Kafka status.
+     */
+    @GetMapping(value = AppConstants.START_KAFKA_HEALTH_CHECK_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Response>> checkKafkaHealth() {
+        log.info("checkKafkaHealth() : Kafka Health Check - START");
+        return kafkaHealthCheckService.checkKafkaHealth()
+                .flatMap(response -> {
+                    log.info("checkKafkaHealth() : Kafka Health Check Response -> {}",
+                            ApplicationUtils.getJSONString(response));
+                    return Mono.just(ResponseEntity.ok(response));
+                })
+                .onErrorResume(ex -> {
+                    log.error("checkKafkaHealth() : Kafka Health Check Failed", ex);
+                    Response errorResponse = new Response();
+                    errorResponse.setStatus("Kafka is DOWN. Error -> " + ex.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse));
+                });
+    }
 
     /**
      * API to trigger Kafka setup based on request parameters.
