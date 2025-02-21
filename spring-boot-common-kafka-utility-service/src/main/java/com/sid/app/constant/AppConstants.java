@@ -20,4 +20,7 @@ public class AppConstants {
     public static final String KAFKA_CONSUME_MESSAGE_ENDPOINT = "/api/v1/kafka-service/kafka/consume";
     public static final String START_KAFKA_HEALTH_CHECK_ENDPOINT = "/api/v1/kafka-service/kafka/health";
 
+    public static final String HEALTH_CHECK_TOPIC = "kafka_health_check";
+    public static final String HEALTH_CHECK_TEXT_MESSAGE = "health_check_";
+
 }

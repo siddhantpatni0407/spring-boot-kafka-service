@@ -1,6 +1,7 @@
 package com.sid.app.service;
 
 import com.sid.app.config.AppProperties;
+import com.sid.app.constant.AppConstants;
 import com.sid.app.model.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.TimeoutException;
@@ -29,8 +30,6 @@ public class KafkaHealthCheckService {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    private static final String HEALTH_TOPIC = "kafka_health_check";
-
     /**
      * Checks Kafka health by sending a lightweight message.
      *
@@ -38,10 +37,10 @@ public class KafkaHealthCheckService {
      */
     public Mono<Response> checkKafkaHealth() {
         Response response = new Response();
-        String testMessage = "health_check_" + UUID.randomUUID();
+        String testMessage = AppConstants.HEALTH_CHECK_TEXT_MESSAGE + UUID.randomUUID();
 
         try {
-            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(HEALTH_TOPIC, testMessage);
+            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(AppConstants.HEALTH_CHECK_TOPIC, testMessage);
 
             return Mono.fromFuture(future.thenApply(result -> {
                 log.info("✅ Kafka is UP! Message [{}] sent with offset [{}]",
