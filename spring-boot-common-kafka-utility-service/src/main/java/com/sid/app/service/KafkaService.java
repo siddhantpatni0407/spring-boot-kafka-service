@@ -2,9 +2,13 @@ package com.sid.app.service;
 
 import com.sid.app.config.AppProperties;
 import com.sid.app.model.Response;
+import com.sid.app.model.TopicDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.KafkaFuture;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * @author Siddhant Patni
@@ -29,6 +34,9 @@ public class KafkaService {
 
     @Autowired
     private AppProperties appProperties;
+
+    @Autowired
+    private AdminClient adminClient;
 
     public Mono<ResponseEntity<Response>> createTopic(String topicName, Integer partition) {
         return Mono.fromCallable(() -> {
@@ -232,5 +240,78 @@ public class KafkaService {
         }
     }
 
+    public Mono<TopicDetails> getTopicDetailsWithOffsets(String topicName) {
+        return getTopicDescription(topicName)
+                .flatMap(topicDescription -> {
+                    // Get the number of partitions directly from topicDescription
+                    int partitionCount = topicDescription.partitions().size();
+
+                    if (partitionCount == 0) {
+                        return Mono.error(new RuntimeException("No partitions found for topic: " + topicName));
+                    }
+
+                    // Set up the Kafka AdminClient
+                    Properties properties = new Properties();
+                    properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, appProperties.getBootstrapServers());
+
+                    try (AdminClient adminClient = AdminClient.create(properties)) {
+                        // Prepare offset specs to fetch the earliest and latest offsets for each partition
+                        List<TopicPartition> partitions = topicDescription.partitions().stream()
+                                .map(partition -> new TopicPartition(topicName, partition.partition()))
+                                .collect(Collectors.toList());
+
+                        Map<TopicPartition, OffsetSpec> earliestOffsetSpec = partitions.stream()
+                                .collect(Collectors.toMap(p -> p, p -> OffsetSpec.earliest()));
+
+                        Map<TopicPartition, OffsetSpec> latestOffsetSpec = partitions.stream()
+                                .collect(Collectors.toMap(p -> p, p -> OffsetSpec.latest()));
+
+                        // Fetch earliest and latest offsets using the AdminClient
+                        var earliestOffsets = adminClient.listOffsets(earliestOffsetSpec).all().get();
+                        var latestOffsets = adminClient.listOffsets(latestOffsetSpec).all().get();
+
+                        // Create a KafkaConsumer to fetch the current consumer offsets for each partition
+                        Properties consumerProperties = new Properties();
+                        consumerProperties.putAll(properties); // Copy all properties
+                        consumerProperties.put("key.deserializer", StringDeserializer.class.getName());
+                        consumerProperties.put("value.deserializer", StringDeserializer.class.getName());
+
+                        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+                            // Assign the consumer to the partitions to retrieve the current offsets
+                            consumer.assign(partitions);
+
+                            // Get current offsets for the partitions
+                            Map<TopicPartition, Long> currentOffsets = partitions.stream()
+                                    .collect(Collectors.toMap(partition -> partition, consumer::position));
+
+                            // Calculate the total number of messages in the topic (difference between latest and earliest offsets)
+                            long totalMessages = partitions.stream()
+                                    .mapToLong(partition -> latestOffsets.get(partition).offset() - earliestOffsets.get(partition).offset())
+                                    .sum();
+
+                            // Calculate the total lag for the topic (difference between latest offset and current offset for each partition)
+                            long totalLag = partitions.stream()
+                                    .mapToLong(partition -> {
+                                        long latestOffset = latestOffsets.get(partition).offset();
+                                        long currentOffset = currentOffsets.getOrDefault(partition, 0L); // Default to 0 if no current offset found
+                                        return latestOffset - currentOffset;
+                                    })
+                                    .sum();
+
+                            // Construct the final response including total messages, total lag, and partition count
+                            return Mono.just(new TopicDetails(
+                                    topicName,
+                                    partitionCount, // Returning only the number of partitions
+                                    totalMessages,  // Total messages in the topic
+                                    totalLag        // Total lag in the topic
+                            ));
+                        }
+
+                    } catch (InterruptedException | ExecutionException e) {
+                        Thread.currentThread().interrupt();
+                        return Mono.error(new RuntimeException("Error retrieving offsets", e));
+                    }
+                });
+    }
 
 }

@@ -120,6 +120,38 @@ public class KafkaController {
         }, executorService));
     }
 
+    @PostMapping(value = AppConstants.START_KAFKA_SERVERS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Response>> startServers() {
+        if (log.isInfoEnabled()) {
+            log.info("startServers() : Start Zookeeper and Kafka Server - START");
+        }
+        return kafkaService.startServers()
+                .flatMap(responseResponseEntity -> {
+                    if (log.isInfoEnabled()) {
+                        log.info("startServers() : Start Zookeeper and Kafka Server API. Response -> {}",
+                                ApplicationUtils.getJSONString(responseResponseEntity));
+                        log.info("startServers() : Start Zookeeper and Kafka Server - END");
+                    }
+                    return Mono.just(responseResponseEntity);
+                });
+    }
+
+    @PostMapping(value = AppConstants.STOP_KAFKA_SERVERS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Response>> stopKafkaServers() {
+        if (log.isInfoEnabled()) {
+            log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server - START");
+        }
+        return kafkaService.stopKafkaServers()
+                .flatMap(responseResponseEntity -> {
+                    if (log.isInfoEnabled()) {
+                        log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server API. Response -> {}",
+                                ApplicationUtils.getJSONString(responseResponseEntity));
+                        log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server - END");
+                    }
+                    return Mono.just(responseResponseEntity);
+                });
+    }
+
     @PostMapping(value = AppConstants.KAFKA_CREATE_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> createTopic(@RequestParam(value = "topicName") String topicName,
                                                       @RequestParam(value = "partition", required = false) Integer partition) {
@@ -155,30 +187,22 @@ public class KafkaController {
     }
 
     @GetMapping(value = AppConstants.KAFKA_TOPIC_DETAILS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<TopicDetails>> describeKafkaTopic(@RequestParam(value = "topicName") String topicName) {
+    public Mono<ResponseEntity<TopicDetails>> getTopicDetails(@RequestParam(value = "topicName") String topicName) {
         if (log.isInfoEnabled()) {
-            log.info("describeKafkaTopic() : Get Topic Details - START");
+            log.info("getTopicDetails() : Get Topic Details - START");
         }
-        return kafkaService.getTopicDescription(topicName)
-                .map(topicDescription -> {
-                    TopicDetails topicDetails = new TopicDetails();
-                    topicDetails.setName(topicName);
-                    topicDetails.setNumPartitions(topicDescription.partitions().size());
-                    topicDetails.setPartitions(topicDescription.partitions());
-                    return ResponseEntity.ok(topicDetails);
-                })
+        return kafkaService.getTopicDetailsWithOffsets(topicName)
+                .map(ResponseEntity::ok)
                 .onErrorResume(KafkaException.class, error -> {
-                    log.error("KafkaException occurred while fetching topic details", error);
-                    return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(new TopicDetails()));
+                    log.error("getTopicDetails() : KafkaException occurred while fetching topic details", error);
+                    return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
                 })
                 .onErrorResume(Exception.class, error -> {
-                    log.error("Exception occurred while fetching topic details", error);
+                    log.error("getTopicDetails() : Exception occurred while fetching topic details", error);
                     return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                             .body(new TopicDetails()));
                 });
     }
-
 
     @DeleteMapping(value = AppConstants.KAFKA_TOPIC_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> deleteTopic(@RequestParam(value = "topicName") String topicName) {
@@ -196,37 +220,6 @@ public class KafkaController {
                 });
     }
 
-    @PostMapping(value = AppConstants.START_KAFKA_SERVERS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Response>> startServers() {
-        if (log.isInfoEnabled()) {
-            log.info("startServers() : Start Zookeeper and Kafka Server - START");
-        }
-        return kafkaService.startServers()
-                .flatMap(responseResponseEntity -> {
-                    if (log.isInfoEnabled()) {
-                        log.info("startServers() : Start Zookeeper and Kafka Server API. Response -> {}",
-                                ApplicationUtils.getJSONString(responseResponseEntity));
-                        log.info("startServers() : Start Zookeeper and Kafka Server - END");
-                    }
-                    return Mono.just(responseResponseEntity);
-                });
-    }
-
-    @PostMapping(value = AppConstants.STOP_KAFKA_SERVERS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Response>> stopKafkaServers() {
-        if (log.isInfoEnabled()) {
-            log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server - START");
-        }
-        return kafkaService.stopKafkaServers()
-                .flatMap(responseResponseEntity -> {
-                    if (log.isInfoEnabled()) {
-                        log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server API. Response -> {}",
-                                ApplicationUtils.getJSONString(responseResponseEntity));
-                        log.info("stopKafkaServers() : Stop Zookeeper and Kafka Server - END");
-                    }
-                    return Mono.just(responseResponseEntity);
-                });
-    }
 
     @DeleteMapping(value = AppConstants.DELETE_KAFKA_LOGS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Response>> deleteKafkaLogs() {

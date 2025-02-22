@@ -477,26 +477,10 @@ the [official website](https://kafka.apache.org/downloads).
 
 ````
 {
-    "name": "kafka-demo",
-    "numPartitions": 1,
-    "partitions": [
-        {
-            "partition": "0",
-            "leader": {
-                "empty": false
-            },
-            "replicas": [
-                {
-                    "empty": false
-                }
-            ],
-            "isr": [
-                {
-                    "empty": false
-                }
-            ]
-        }
-    ]
+    "topicName": "siya",
+    "partitionCount": 4,
+    "totalMessages": 5,
+    "totalLag": 0
 }
 ````
 

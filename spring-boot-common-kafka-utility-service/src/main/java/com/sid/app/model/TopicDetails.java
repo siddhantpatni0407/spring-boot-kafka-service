@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.apache.kafka.common.TopicPartitionInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Siddhant Patni
@@ -20,13 +21,16 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TopicDetails {
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("topicName")
+    private String topicName;
 
-    @JsonProperty("numPartitions")
-    private Integer numPartitions;
+    @JsonProperty("partitionCount")
+    private int partitionCount;
 
-    @JsonProperty("partitions")
-    private List<TopicPartitionInfo> partitions;
+    @JsonProperty("totalMessages")
+    private long totalMessages;
+
+    @JsonProperty("totalLag")
+    private long totalLag;
 
 }
