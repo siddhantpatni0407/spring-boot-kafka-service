@@ -30,16 +30,17 @@
     - [Steps - For Open Source Kafka Server](#steps---for-open-source-kafka-server)
     - [API Details](#api-details)
         - [1. Setup Kafka Server](#1-setup-kafka-server)
-        - [2. Start Server](#2-start-server)
-        - [3. Stop Server](#3-stop-server)
-        - [4. Create Topic](#4-create-topic)
-        - [5. Get All Topics](#5-get-all-topics)
-        - [6. Get Topic Details](#6-get-topic-details)
-        - [7. Delete Topic](#7-delete-topic)
-        - [8. Delete Kafka Logs](#8-delete-kafka-logs)
-        - [9. Publish Message](#9-publish-message)
-        - [10. Send Events](#10-send-events)
-        - [11. Publish Events (Error Handling)](#11-publish-events-error-handling)
+        - [2. Kafka Health Check](#2-kafka-health-check)
+        - [3. Start Server](#2-start-server)
+        - [4. Stop Server](#3-stop-server)
+        - [5. Create Topic](#4-create-topic)
+        - [6. Get All Topics](#5-get-all-topics)
+        - [7. Get Topic Details](#6-get-topic-details)
+        - [8. Delete Topic](#7-delete-topic)
+        - [9. Delete Kafka Logs](#8-delete-kafka-logs)
+        - [10. Publish Message](#9-publish-message)
+        - [11. Send Events](#10-send-events)
+        - [12. Publish Events (Error Handling)](#11-publish-events-error-handling)
     - [API Summary](#api-summary)
         - [Overview](#overview)
         - [API Endpoints](#api-endpoints)
@@ -347,7 +348,7 @@ This README provides a guide on how to use Apache Kafka with various commands.
 Before running Kafka commands, make sure you have Kafka installed on your system. If not, download and install it from
 the [official website](https://kafka.apache.org/downloads).
 
-## Steps - FOr Open Source Kafka Server
+## Steps - For Open Source Kafka Server
 
 1. **Go to Kafka Installation Directory**: Navigate to the Kafka server installation directory on your system. For
    example:
@@ -633,7 +634,15 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 }
 ```
 
-### 2. Start Server
+### 2. Kafka Health Check
+
+- **URL:** http://localhost:8081/api/v1/kafka-service/kafka/health
+- **Method:** GET
+- **Description:** Kafka Server Health check.
+- **Response:**
+    - Status: ✅ Kafka is UP! Message Hi sent with offset 0
+
+### 3. Start Server
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/start-server
 - **Method:** POST
@@ -641,7 +650,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Zookeeper and Kafka servers started successfully.
 
-### 3. Stop Server
+### 4. Stop Server
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/stop-server
 - **Method:** POST
@@ -649,7 +658,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Zookeeper and Kafka servers stopped successfully.
 
-### 4. Create Topic
+### 5. Create Topic
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic
 - **Method:** POST
@@ -660,7 +669,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Topic created successfully.
 
-### 5. Get All Topics
+### 6. Get All Topics
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic
 - **Method:** GET
@@ -668,7 +677,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - List of topic names.
 
-### 6. Get Topic Details
+### 7. Get Topic Details
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName={topic-name}
 - **Method:** GET
@@ -678,7 +687,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Details of the specified Kafka topic.
 
-### 7. Delete Topic
+### 8. Delete Topic
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/topic?topicName={topic-name}
 - **Method:** DELETE
@@ -688,7 +697,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Topic deleted successfully.
 
-### 8. Delete Kafka Logs
+### 9. Delete Kafka Logs
 
 - **URL:** http://localhost:8081/api/v1/kafka-service/kafka/logs
 - **Method:** DELETE
@@ -696,7 +705,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Kafka and Zookeeper logs deleted successfully.
 
-### 9. Publish Message
+### 10. Publish Message
 
 - **URL:** http://localhost:8082/api/v1/kafka-service/publish
 - **Method:** GET
@@ -704,7 +713,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Message published successfully.
 
-### 10. Send Events
+### 11. Send Events
 
 - **URL:** http://localhost:8082/api/v1/kafka-service/publish
 - **Method:** POST
@@ -713,7 +722,7 @@ POST http://localhost:8081/api/v1/kafka-service/kafka/setup?kafkaAutoSetupRequir
 - **Response:**
     - Status: Events published successfully.
 
-### 11. Publish Events (Error Handling)
+### 12. Publish Events (Error Handling)
 
 - **URL:** http://localhost:8084/api/v1/kafka-service/error-handling/producer
 - **Method:** POST

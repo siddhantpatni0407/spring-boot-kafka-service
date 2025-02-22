@@ -11,6 +11,7 @@ import java.io.IOException;
 
 /**
  * @author Siddhant Patni
+ * Service for consuming Kafka messages with various options.
  */
 @Service
 @Slf4j
@@ -19,132 +20,114 @@ public class KafkaConsumerService {
     @Autowired
     private AppProperties appProperties;
 
+    /**
+     * Consumes messages from the specified Kafka topic.
+     *
+     * @param topicName the name of the Kafka topic
+     * @return a Mono containing the response status
+     */
     public Mono<Response> consumeMessages(String topicName) {
-        Response response = Response.builder().build();
-
-        try {
-            ProcessBuilder consumerProcessBuilder = new ProcessBuilder();
-            consumerProcessBuilder.command(
-                    "cmd.exe", "/c", "start", "cmd.exe", "/k", "call",
-                    appProperties.getKafkaInstallationDirectory() + "\\kafka-console-consumer.bat",
-                    "--bootstrap-server", appProperties.getBootstrapServers(),
-                    "--topic", topicName,
-                    "--from-beginning"
-            );
-
-            Process consumerProcess = consumerProcessBuilder.start();
-
-            // Check if the process started successfully
-            if (consumerProcess.isAlive()) {
-                log.info("consumeMessages() : Kafka consumer started successfully for topic '{}'", topicName);
-                response.setStatus("Kafka consumer started successfully for topic: " + topicName);
-            } else {
-                log.error("consumeMessages() : Failed to start Kafka consumer for topic '{}'", topicName);
-                response.setErrorMessage("Failed to start Kafka consumer.");
-            }
-        } catch (IOException e) {
-            log.error("consumeMessages() : Failed to start consumer for topic '{}' due to {}", topicName, e.getMessage(), e);
-            response.setErrorMessage("Unable to start consumer: " + e.getMessage());
-        }
-
-        return Mono.just(response);
+        return executeKafkaConsumerCommand(topicName, "--from-beginning");
     }
 
+    /**
+     * Consumes the latest message from the specified Kafka topic.
+     *
+     * @param topicName the name of the Kafka topic
+     * @return a Mono containing the response status
+     */
     public Mono<Response> consumeLatestMessage(String topicName) {
-        Response response = Response.builder().build();
-
-        try {
-            ProcessBuilder consumerProcessBuilder = new ProcessBuilder();
-            consumerProcessBuilder.command(
-                    "cmd.exe", "/c", "start", "cmd.exe", "/k", "call",
-                    appProperties.getKafkaInstallationDirectory() + "\\kafka-console-consumer.bat",
-                    "--bootstrap-server", appProperties.getBootstrapServers(),
-                    "--topic", topicName,
-                    "--max-messages", "1" // This flag limits the consumer to consume only one message
-            );
-
-            Process consumerProcess = consumerProcessBuilder.start();
-
-            // Check if the process started successfully
-            if (consumerProcess.isAlive()) {
-                log.info("consumeLatestMessage() : Kafka consumer started successfully for topic '{}'", topicName);
-                response.setStatus("Kafka consumer started successfully for topic: " + topicName);
-            } else {
-                log.error("consumeLatestMessage() : Failed to start Kafka consumer for topic '{}'", topicName);
-                response.setErrorMessage("Failed to start Kafka consumer.");
-            }
-        } catch (IOException e) {
-            log.error("consumeLatestMessage() : Failed to start consumer for topic '{}' due to {}", topicName, e.getMessage(), e);
-            response.setErrorMessage("Unable to start consumer: " + e.getMessage());
-        }
-
-        return Mono.just(response);
+        return executeKafkaConsumerCommand(topicName, "--max-messages 1");
     }
 
-    public Mono<Response> consumeMessagesWithOptions(String topicName, String format, int maxMessages, boolean fromBeginning,
-                                                     Integer partition, String group, long timeoutMs) {
+    /**
+     * Consumes messages from the specified Kafka topic with additional options.
+     *
+     * @param topicName     the name of the Kafka topic
+     * @param format        the message format (e.g., "plain" or "json")
+     * @param maxMessages   the maximum number of messages to consume
+     * @param fromBeginning whether to consume from the beginning
+     * @param partition     the partition number (optional)
+     * @param group         the consumer group (optional)
+     * @param timeoutMs     the timeout in milliseconds
+     * @return a Mono containing the response status
+     */
+    public Mono<Response> consumeMessagesWithOptions(String topicName, String format, int maxMessages,
+                                                     boolean fromBeginning, Integer partition, String group,
+                                                     long timeoutMs) {
+        StringBuilder commandBuilder = new StringBuilder()
+                .append(appProperties.getKafkaInstallationDirectory())
+                .append("\\kafka-console-consumer.bat")
+                .append(" --bootstrap-server ").append(appProperties.getBootstrapServers())
+                .append(" --topic ").append(topicName);
+
+        if ("json".equalsIgnoreCase(format)) {
+            commandBuilder.append(" --property print.value=true");
+        } else if ("plain".equalsIgnoreCase(format)) {
+            commandBuilder.append(" --max-messages ").append(maxMessages);
+        }
+
+        if (fromBeginning) {
+            commandBuilder.append(" --from-beginning");
+        }
+
+        if (partition != null) {
+            commandBuilder.append(" --partition ").append(partition);
+        }
+
+        if (group != null && !group.isEmpty()) {
+            commandBuilder.append(" --group ").append(group);
+        }
+
+        commandBuilder.append(" --timeout-ms ").append(timeoutMs);
+
+        return executeKafkaConsumerCommand(topicName, commandBuilder.toString());
+    }
+
+    /**
+     * Executes the Kafka consumer command with the specified options.
+     *
+     * @param topicName         the name of the Kafka topic
+     * @param additionalOptions additional command-line options
+     * @return a Mono containing the response status
+     */
+    private Mono<Response> executeKafkaConsumerCommand(String topicName, String additionalOptions) {
         Response response = Response.builder().build();
-        // Build the Kafka consumer command dynamically
-        String command = buildKafkaConsumerCommand(topicName, format, maxMessages, fromBeginning, partition, group, timeoutMs);
+        String command = buildKafkaConsumerCommand(topicName, additionalOptions);
 
         try {
-            // Execute the Kafka consumer process
             ProcessBuilder consumerProcessBuilder = new ProcessBuilder(command.split(" "));
             Process consumerProcess = consumerProcessBuilder.start();
 
-            // Check if the process started successfully
             if (consumerProcess.isAlive()) {
+                log.info("Kafka consumer started successfully for topic '{}'", topicName);
                 response.setStatus("Kafka consumer started successfully for topic: " + topicName);
             } else {
+                log.error("Failed to start Kafka consumer for topic '{}'", topicName);
                 response.setErrorMessage("Failed to start Kafka consumer.");
             }
-
         } catch (IOException e) {
-            // Log and return the error response
+            log.error("Failed to start consumer for topic '{}' due to {}", topicName, e.getMessage(), e);
             response.setErrorMessage("Unable to start consumer: " + e.getMessage());
         }
+
         return Mono.just(response);
     }
 
-    // Helper method to dynamically build Kafka consumer command
-    private String buildKafkaConsumerCommand(String topicName, String format, int maxMessages, boolean fromBeginning,
-                                             Integer partition, String group, long timeoutMs) {
-        String baseCommand = appProperties.getKafkaInstallationDirectory() + "\\kafka-console-consumer.bat";
-        String bootstrapServers = appProperties.getBootstrapServers();
-
-        // Start building the base command
-        StringBuilder command = new StringBuilder()
-                .append("cmd.exe /c start cmd.exe /k call ")
-                .append(baseCommand)
-                .append(" --bootstrap-server ").append(bootstrapServers)
-                .append(" --topic ").append(topicName);
-
-        // Add the format flag
-        if ("json".equalsIgnoreCase(format)) {
-            command.append(" --property print.value=true");  // Print message in JSON format
-        } else if ("plain".equalsIgnoreCase(format)) {
-            command.append(" --max-messages ").append(maxMessages);  // Limit the number of messages
-        }
-
-        // Handle the 'fromBeginning' flag
-        if (fromBeginning) {
-            command.append(" --from-beginning");  // Consume from the beginning of the topic
-        }
-
-        // Handle the 'partition' flag (optional)
-        if (partition != null) {
-            command.append(" --partition ").append(partition);  // Specify the partition number
-        }
-
-        // Handle the 'group' flag (optional)
-        if (group != null && !group.isEmpty()) {
-            command.append(" --group ").append(group);  // Specify the consumer group
-        }
-
-        // Handle the 'timeoutMs' flag (optional)
-        command.append(" --timeout-ms ").append(timeoutMs);  // Timeout in milliseconds
-
-        return command.toString();
+    /**
+     * Builds the Kafka consumer command with the specified options.
+     *
+     * @param topicName         the name of the Kafka topic
+     * @param additionalOptions additional command-line options
+     * @return the complete Kafka consumer command
+     */
+    private String buildKafkaConsumerCommand(String topicName, String additionalOptions) {
+        return "cmd.exe /c start cmd.exe /k call " +
+                appProperties.getKafkaInstallationDirectory() +
+                "\\kafka-console-consumer.bat" +
+                " --bootstrap-server " + appProperties.getBootstrapServers() +
+                " --topic " + topicName +
+                " " + additionalOptions;
     }
 
 }
