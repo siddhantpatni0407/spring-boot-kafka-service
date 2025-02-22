@@ -51,20 +51,9 @@
 
 Spring Boot application for interacting with Apache Kafka.
 
-- This contains 4 modules
-    1. spring-boot-common-kafka-utility-service
-    2. spring-boot-kafka-producer
-    3. spring-boot-kafka-consumer
-    4. spring-boot-kafka-producer-consumer-error-handling
-
 ## Description
 
-This service enables communication with Apache Kafka through RESTful APIs. It consists of 4 modules:
-
-- `spring-boot-common-kafka-utility-service` : Common Utility for Kafka Server
-- `spring-boot-kafka-producer`: Allows publishing messages to Kafka topics.
-- `spring-boot-kafka-consumer`: Facilitates consuming messages from Kafka topics.
-- `spring-boot-kafka-producer-consumer-error-handling`: Error handling implementation in Producer and Consumer.
+This service enables communication with Apache Kafka through RESTful APIs. 
 
 ## Features
 

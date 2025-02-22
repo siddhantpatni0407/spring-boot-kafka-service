@@ -1,6 +1,6 @@
 spring:
   application:
-    name: spring-boot-common-kafka-utility-service
+    name: spring-boot-kafka-service
   main:
     banner-mode: #off
   banner:
