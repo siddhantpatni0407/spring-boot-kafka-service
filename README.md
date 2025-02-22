@@ -5,7 +5,7 @@
 1. [Introduction](#introduction)
 2. [Description](#description)
 3. [Features](#features)
-   4[Usage](#usage)
+   [Usage](#usage)
 5. [Key Concepts](#key-concepts)
     - [Kafka Cluster](#kafka-cluster)
     - [Kafka Broker](#kafka-broker)
