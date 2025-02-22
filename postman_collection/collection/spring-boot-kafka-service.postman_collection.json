@@ -513,6 +513,167 @@
 					"response": []
 				},
 				{
+					"name": "Kafka Consume Latest 'Message",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/consume/latest-message?topicName=demo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"consume",
+								"latest-message"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "demo",
+									"description": "String"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Kafka Consume 'Message with Options",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Correlation-ID",
+								"value": "1234567",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumer",
+								"value": "HPM",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "capabilityConsumerTimestamp",
+								"value": "2022-02-22T12:30:34",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/consume/options?topicName=demo&format=Plain&maxMessages=1&fromBeginning=true&partition=2&timeoutMs=1000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"kafka-service",
+								"kafka",
+								"consume",
+								"options"
+							],
+							"query": [
+								{
+									"key": "topicName",
+									"value": "demo",
+									"description": "String"
+								},
+								{
+									"key": "format",
+									"value": "Plain",
+									"description": "String"
+								},
+								{
+									"key": "maxMessages",
+									"value": "1",
+									"description": "int"
+								},
+								{
+									"key": "fromBeginning",
+									"value": "true",
+									"description": "boolean"
+								},
+								{
+									"key": "partition",
+									"value": "2",
+									"description": "Integer"
+								},
+								{
+									"key": "group",
+									"value": null,
+									"description": "String",
+									"disabled": true
+								},
+								{
+									"key": "timeoutMs",
+									"value": "1000",
+									"description": "long"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Topic Details",
 					"request": {
 						"auth": {
@@ -552,7 +713,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=sid",
+							"raw": "http://localhost:8081/api/v1/kafka-service/kafka/topic/details?topicName=siya",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -569,7 +730,7 @@
 							"query": [
 								{
 									"key": "topicName",
-									"value": "sid"
+									"value": "siya"
 								}
 							]
 						}
